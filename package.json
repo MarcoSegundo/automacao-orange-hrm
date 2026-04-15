@@ -1,0 +1,34 @@
+{
+  "name": "automacao-orange-hrm",
+  "version": "1.0.0",
+  "description": "Automacao OrangeHRM com Playwright + TypeScript + BDD",
+  "scripts": {
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "lint:types": "tsc --noEmit",
+    "build": "tsc -p tsconfig.json",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:smoke": "cucumber-js --config cucumber.cjs --profile smoke",
+    "test:smoke:retry": "cucumber-js --config cucumber.cjs --profile smoke_retry",
+    "test:bdd": "cucumber-js --config cucumber.cjs --profile default",
+    "report": "playwright show-report"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@cucumber/cucumber": "^11.2.0",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.59.1",
+    "@types/node": "^25.6.0",
+    "dotenv": "^16.6.1",
+    "eslint": "^10.2.0",
+    "globals": "^17.5.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.58.2"
+  }
+}
