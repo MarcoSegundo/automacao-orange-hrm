@@ -1,4 +1,4 @@
-import { DashboardPage, EmployeeListPage } from "../../../src/pages";
+import { DashboardPage, EmployeeListPage, AddEmployeePage, EditEmployeePage } from "../../../src/pages";
 import { LoginPage } from "../../../src/auth/pages";
 import { getPage, getSeededEmployee } from "../context/scenario-context";
 import { ScenarioWorld } from "../context/world";
@@ -16,6 +16,14 @@ export function dashboardPage(world: ScenarioWorld): DashboardPage {
 
 export function employeeListPage(world: ScenarioWorld): EmployeeListPage {
   return new EmployeeListPage(getPage(world));
+}
+
+export function addEmployeePage(world: ScenarioWorld): AddEmployeePage {
+  return new AddEmployeePage(getPage(world));
+}
+
+export function editEmployeePage(world: ScenarioWorld): EditEmployeePage {
+  return new EditEmployeePage(getPage(world));
 }
 
 export function requireSeededEmployeeFirstName(world: ScenarioWorld): string {

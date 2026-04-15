@@ -1,13 +1,15 @@
 import { EmployeeFactory } from "../../../src/factories/employee.factory";
 import { HybridPimService } from "../../../src/services/hybrid-pim.service";
+import { TestMessages } from "../../../src/support/messages";
 import { ScenarioWorld } from "../context/world";
 
-const PIM_FLOW_TAGS = ["@pim", "@search"] as const;
-const DELETE_EMPLOYEE_TAG = "@delete_employee";
+// Tags que indicam que o cenário precisa de uma massa de apoio no PIM.
+const SEEDED_EMPLOYEE_REQUIRED_TAGS = ["@search", "@seeded-employee", "@delete-employee"] as const;
+const DELETE_EMPLOYEE_TAG = "@delete-employee";
 
 /** Define em quais fluxos a massa de apoio deve ser preparada antes do cenário. */
 export function shouldApplySeededEmployeeFixture(tagNames: string[]): boolean {
-  return PIM_FLOW_TAGS.some((tag) => tagNames.includes(tag));
+  return SEEDED_EMPLOYEE_REQUIRED_TAGS.some((tag) => tagNames.includes(tag));
 }
 
 /** Evita limpeza dupla quando o cenário já valida a exclusão como resultado final. */
@@ -21,7 +23,7 @@ export function shouldSkipSeededEmployeeCleanup(tagNames: string[]): boolean {
  */
 export async function setupSeededEmployeeFixture(world: ScenarioWorld): Promise<void> {
   if (!world.page || !world.browserContext) {
-    return;
+    throw new Error(TestMessages.browserSessionNotInitialized);
   }
 
   const hybridService = new HybridPimService(world.page, world.browserContext);

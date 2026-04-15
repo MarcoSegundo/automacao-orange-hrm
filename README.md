@@ -53,10 +53,21 @@ npm run lint:types
 npm run test:smoke
 ```
 
-### 4. Configurar variáveis (opcional)
+### 4. Configurar variáveis (obrigatório)
+```powershell
+Copy-Item .env.example .env
+```
+
+Ou:
+
 ```bash
 cp .env.example .env
 ```
+
+Preencha no `.env`:
+- `ADMIN_USER`
+- `ADMIN_PASS`
+- `BASE_URL` (opcional; por padrão usa o demo público)
 
 Para debug com navegador aberto: `HEADLESS=false`
 
@@ -95,7 +106,7 @@ Para debug com navegador aberto: `HEADLESS=false`
 ```bash
 npm run test:smoke              # Smoke (7 cenários)
 npm run test:smoke:retry        # Retry se falhar
-npm run test:bdd                # Todos os cenários
+npm run test:bdd                # Todos os cenários automatizados
 npm run lint && npm run lint:types  # Validação
 ```
 
@@ -117,7 +128,7 @@ docker run --rm --env-file .env orangehrm-qa
 | `npm run build` | Compila TypeScript |
 | `npm run test:smoke` | Executa os 7 cenários P0 |
 | `npm run test:smoke:retry` | Retry para diagnóstico de flaky |
-| `npm run test:bdd` | Executa todos os 15 cenários |
+| `npm run test:bdd` | Executa todos os cenários automatizados |
 | `npm run test` | Usa Playwright Test diretamente |
 | `npm run report` | Abre o relatório HTML |
 
@@ -130,21 +141,26 @@ O pipeline em [.github/workflows/ci.yml](.github/workflows/ci.yml) executa:
 1. Lint + type-check
 2. Smoke (primeira tentativa)
 3. Retry automático se falhar
-4. Publica relatório de flaky + artefatos
+4. Publica artefatos de teste
 
 **Gates:**
 - ✅ Se passar na primeira tentativa
-- ✅ Se falhar e passar no retry (com alerta)
-- ❌ Se falhar em ambas
+- ❌ Se falhar na primeira tentativa (o retry é diagnóstico adicional)
 
-**Evidências em falha:** screenshot, trace, relatórios JSON
+**Evidências em falha:** screenshot, trace, video, relatórios JSON
+
+### Secrets esperados no GitHub Actions
+
+- `ORANGEHRM_ADMIN_USER` (Repository Secret)
+- `ORANGEHRM_ADMIN_PASS` (Repository Secret)
+- `ORANGEHRM_BASE_URL` (opcional, Repository Variable)
 
 ---
 
 ## Política de Flaky
 
 - **Flaky** = teste falha 1ª vez, passa no retry
-- **Regra** = merge permitido com aviso
+- **Regra** = retry executado para diagnóstico
 - **Meta** = máximo 2% de flaky em 14 dias
 
 ---

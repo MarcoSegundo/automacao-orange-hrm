@@ -22,6 +22,7 @@ export class ScenarioWorld extends World {
   browserContext?: BrowserContext;
   page?: Page;
   credentials?: AuthCredentials;
+  employeeLoginCredentials?: AuthCredentials;
   employee?: ScenarioEmployee;
   seededEmployee?: HybridSeed;
 

@@ -1,6 +1,6 @@
 import { expect, Page } from "@playwright/test";
 import { BasePage } from "../../pages/base.page";
-import { ROUTES } from "../../support/routes";
+import { ROUTES, ROUTE_PATTERNS } from "../../support/routes";
 import { SystemMessages } from "../../support/messages";
 
 /**
@@ -11,7 +11,7 @@ export class LoginPage extends BasePage {
   private readonly username = this.page.locator('input[name="username"]');
   private readonly password = this.page.locator('input[name="password"]');
   private readonly submit = this.page.locator('button[type="submit"]');
-  private readonly alert = this.page.locator(".oxd-alert-content-text");
+  private readonly alert = this.page.locator(".oxd-alert-content-text, .oxd-alert-content .oxd-text").first();
 
   constructor(page: Page) {
     super(page);
@@ -19,7 +19,9 @@ export class LoginPage extends BasePage {
 
   async open(): Promise<void> {
     await this.goto(ROUTES.authLogin);
-    await expect(this.username).toBeVisible();
+    if (ROUTE_PATTERNS.authLogin.test(this.page.url())) {
+      await expect(this.username).toBeVisible({ timeout: 10000 });
+    }
   }
 
   async login(user: string, pass: string): Promise<void> {
@@ -34,6 +36,6 @@ export class LoginPage extends BasePage {
   }
 
   async expectLoginError(): Promise<void> {
-    await expect(this.alert).toContainText(SystemMessages.invalidCredentials);
+    await expect(this.alert).toContainText(SystemMessages.invalidCredentials, { timeout: 10000 });
   }
 }

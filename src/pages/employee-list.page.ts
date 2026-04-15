@@ -2,33 +2,33 @@ import { expect, Page } from "@playwright/test";
 import { BasePage } from "./base.page";
 import { ROUTES } from "../support/routes";
 import { SystemMessages } from "../support/messages";
+import { EMPLOYEE_LIST_READY_TIMEOUT } from "./page-constants";
 
 export class EmployeeListPage extends BasePage {
-  private readonly employeeNameInput = this.page.locator(`input[placeholder="${SystemMessages.employeeSearchPlaceholder}"]`).first();
-  private readonly searchButton = this.page.locator('button[type="submit"]');
+  private readonly employeeNameInput = this.page
+    .locator(`input[placeholder="${SystemMessages.employeeSearchPlaceholder}"]`)
+    .first();
   private readonly tableRows = this.page.locator(".oxd-table-body .oxd-table-row");
-  private readonly noRecords = this.page.locator(".oxd-text--span").filter({ hasText: SystemMessages.noRecordsFound });
-  private readonly addButton = this.page.locator(`button:has-text("${SystemMessages.addButton}")`);
-  private readonly firstNameInput = this.page.locator('input[name="firstName"]');
-  private readonly lastNameInput = this.page.locator('input[name="lastName"]');
-  private readonly saveButton = this.page.locator('button[type="submit"]');
-  private readonly editFirstButton = this.page.locator('button:has(i.bi-pencil-fill)').first();
-  private readonly deleteFirstButton = this.page.locator('button:has(i.bi-trash)').first();
-  private readonly confirmDeleteButton = this.page.locator(`button:has-text("${SystemMessages.confirmDelete}")`);
+  private readonly noRecords = this.page
+    .locator(".oxd-text--span")
+    .filter({ hasText: SystemMessages.noRecordsFound });
+  private readonly addButton = this.page.getByRole("button", { name: SystemMessages.addButton });
+  private readonly confirmDeleteButton = this.page.getByRole("button", { name: SystemMessages.confirmDelete });
+  private readonly searchButton = this.page.getByRole("button", { name: SystemMessages.searchButton });
 
   constructor(page: Page) {
     super(page);
   }
 
   async expectListVisible(): Promise<void> {
-    await expect(this.tableRows.first()).toBeVisible();
+    await this.waitForListReady();
   }
 
   async searchByName(name: string): Promise<void> {
     await this.employeeNameInput.fill(name);
     await this.searchButton.click();
-    // Após buscar, espera a página terminar requisições para evitar leitura parcial da tabela.
-    await this.page.waitForLoadState("networkidle");
+    // Após buscar, espera a listagem estabilizar para evitar leitura parcial da tabela.
+    await this.waitForSearchToSettle();
   }
 
   async expectAnyResult(): Promise<void> {
@@ -41,68 +41,47 @@ export class EmployeeListPage extends BasePage {
 
   async expectNoResult(): Promise<void> {
     const rowCount = await this.tableRows.count();
-    // O OrangeHRM pode mostrar "sem resultado" de dois jeitos: tabela vazia ou texto "No Records Found".
+    // O OrangeHRM pode mostrar "sem resultado" de dois jeitos: tabela vazia ou
+    // texto "No Records Found"; validar ambos evita falsos negativos.
     if (rowCount === 0) {
       return;
     }
 
-    await expect(this.noRecords).toBeVisible({ timeout: 10000 });
+    await expect(this.noRecords).toBeVisible({ timeout: EMPLOYEE_LIST_READY_TIMEOUT });
   }
 
   async goToEmployeeList(): Promise<void> {
     await this.goto(ROUTES.pimEmployeeList);
-    await expect(this.searchButton).toBeVisible();
+    // Garante que a listagem e o estado de "sem registros" estejam prontos
+    // antes de prosseguir com ações que dependem da tabela.
+    await this.waitForListReady();
   }
 
-  async startAddEmployee(): Promise<void> {
-    await this.addButton.click();
-    await expect(this.firstNameInput).toBeVisible();
-  }
-
-  async fillMandatoryEmployeeData(firstName: string, lastName: string): Promise<void> {
-    await this.firstNameInput.fill(firstName);
-    await this.lastNameInput.fill(lastName);
-  }
-
-  async submitEmployeeForm(): Promise<void> {
-    await this.saveButton.click();
-    await this.page.waitForURL(/viewPersonalDetails|viewEmployeeList/, { timeout: 20000 });
-  }
-
-  async createEmployee(firstName: string, lastName: string): Promise<{ id: string; firstName: string; lastName: string }> {
-    // Fluxo completo de criação em um método só para evitar repetição nos steps e no fallback da API.
+  async openAndSearchByName(name: string): Promise<void> {
     await this.goToEmployeeList();
-    await this.startAddEmployee();
-    await this.fillMandatoryEmployeeData(firstName, lastName);
-    await this.submitEmployeeForm();
-    const createdId = this.extractEmployeeIdFromCurrentUrl();
-    await this.goToEmployeeList();
-    await this.searchByName(firstName);
+    await this.searchByName(name);
+  }
+
+  async expectEmployeeFoundByName(name: string): Promise<void> {
+    await this.openAndSearchByName(name);
     await this.expectAnyResult();
-
-    return {
-      id: createdId,
-      firstName,
-      lastName
-    };
-  }
-
-  async openFirstEmployeeForEdit(): Promise<void> {
-    await expect(this.editFirstButton).toBeVisible();
-    await this.editFirstButton.click();
-    await expect(this.lastNameInput).toBeVisible();
-  }
-
-  async updateLastName(lastName: string): Promise<void> {
-    await this.lastNameInput.fill(lastName);
-    await this.saveButton.click();
-    await this.page.waitForURL(/viewPersonalDetails|viewEmployeeList/, { timeout: 20000 });
   }
 
   async deleteFirstEmployee(): Promise<void> {
-    await expect(this.deleteFirstButton).toBeVisible();
-    await this.deleteFirstButton.click();
+    const deleteButton = this.getDeleteButtonFromFirstRow();
+    await expect(deleteButton).toBeVisible();
+    await deleteButton.click();
     await expect(this.confirmDeleteButton).toBeVisible();
+  }
+
+  async clickAddButton(): Promise<void> {
+    await this.addButton.click();
+  }
+
+  async openFirstEmployeeForEdit(): Promise<void> {
+    const editButton = this.getEditButtonFromFirstRow();
+    await expect(editButton).toBeVisible();
+    await editButton.click();
   }
 
   async deleteEmployeeByName(firstName: string): Promise<void> {
@@ -122,18 +101,42 @@ export class EmployeeListPage extends BasePage {
 
   async confirmDeleteEmployee(): Promise<void> {
     await this.confirmDeleteButton.click();
-    await this.page.waitForLoadState("networkidle");
+    await this.waitForSearchToSettle();
   }
 
-  private extractEmployeeIdFromCurrentUrl(): string {
-    const pathname = new URL(this.page.url()).pathname;
-    const match = pathname.match(/(?:empNumber|id|employeeId)\/([^/?#]+)/i);
+  private async waitForListReady(): Promise<void> {
+    await this.waitForTableOrEmptyState();
+  }
 
-    if (match?.[1]) {
-      return match[1];
-    }
+  private async waitForSearchToSettle(): Promise<void> {
+    await this.waitForTableOrEmptyState();
+  }
 
-    // Fallback: sempre devolve um ID para não quebrar os passos seguintes, mesmo se a rota mudar no demo.
-    return `${Date.now()}`;
+  private async waitForTableOrEmptyState(): Promise<void> {
+    await this.page
+      .waitForFunction(
+        () => {
+          const rows = document.querySelectorAll(".oxd-table-body .oxd-table-row");
+          const emptyState = Array.from(document.querySelectorAll(".oxd-text--span")).some((element) =>
+            element.textContent?.includes(SystemMessages.noRecordsFound)
+          );
+
+          return rows.length > 0 || emptyState;
+        },
+        { timeout: EMPLOYEE_LIST_READY_TIMEOUT }
+      )
+      .catch(() => undefined);
+  }
+
+  private getFirstResultRow() {
+    return this.tableRows.first();
+  }
+
+  private getEditButtonFromFirstRow() {
+    return this.getFirstResultRow().locator("button").nth(0);
+  }
+
+  private getDeleteButtonFromFirstRow() {
+    return this.getFirstResultRow().locator("button").nth(1);
   }
 }
