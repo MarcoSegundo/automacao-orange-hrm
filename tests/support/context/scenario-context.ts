@@ -8,6 +8,10 @@ export function setCredentials(world: ScenarioWorld, credentials: AuthCredential
   world.credentials = credentials;
 }
 
+export function setEmployeeLoginCredentials(world: ScenarioWorld, credentials: AuthCredentials): void {
+  world.employeeLoginCredentials = credentials;
+}
+
 /** Retorna a página ativa do cenário e falha cedo se o setup não foi executado. */
 export function getPage(world: ScenarioWorld): NonNullable<ScenarioWorld["page"]> {
   if (!world.page) throw new Error(TestMessages.pageNotInitialized);
@@ -17,6 +21,7 @@ export function getPage(world: ScenarioWorld): NonNullable<ScenarioWorld["page"]
 /** Limpa apenas o estado transitório entre steps, mantendo recursos de browser no hook. */
 export function resetStepContext(world: ScenarioWorld): void {
   world.credentials = undefined;
+  world.employeeLoginCredentials = undefined;
   world.employee = undefined;
 }
 
@@ -26,6 +31,13 @@ export function getCredentials(world: ScenarioWorld): AuthCredentials {
     throw new Error(TestMessages.credentialsNotInitialized);
   }
   return world.credentials;
+}
+
+export function getEmployeeLoginCredentials(world: ScenarioWorld): AuthCredentials {
+  if (!world.employeeLoginCredentials) {
+    throw new Error(TestMessages.employeeLoginCredentialsNotInitialized);
+  }
+  return world.employeeLoginCredentials;
 }
 
 export function setEmployee(world: ScenarioWorld, firstName: string, lastName: string): void {

@@ -46,11 +46,13 @@ Given("que o usuario esta autenticado", async function (this: ScenarioWorld) {
   const login = loginPage(this);
   const dashboard = dashboardPage(this);
   const credentials = AuthFactory.validAdmin();
-  const currentUrl = getPage(this).url();
 
-  if (ROUTE_PATTERNS.authLogin.test(currentUrl)) {
-    // Aguarda o redirecionamento ao mesmo tempo do submit para evitar flutuação na sincronização.
-    await login.open();
+  await login.open();
+
+  if (ROUTE_PATTERNS.authLogin.test(getPage(this).url())) {
+    // Executa o login e aguarda a página do painel carregar ao mesmo tempo.
+    // Esta abordagem evita uma condição de corrida simples: se esperássemos
+    // apenas a navegação, o comando de login poderia completar depois.
     await Promise.all([
       getPage(this).waitForURL(ROUTE_PATTERNS.dashboard),
       login.login(credentials.user, credentials.pass)

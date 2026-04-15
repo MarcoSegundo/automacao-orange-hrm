@@ -56,7 +56,8 @@ export class PimApiClient {
 
   private async getApiContext(): Promise<APIRequestContext> {
     if (!this.apiContext) {
-      // Reaproveita a sessão autenticada da UI para a API agir como o mesmo usuário logado.
+      // Reaproveita a sessão autenticada da UI (storageState) para a API
+      // agir como o mesmo usuário logado.
       const storageState = await this.browserContext.storageState();
       this.apiContext = await request.newContext({
         baseURL: env.baseUrl,

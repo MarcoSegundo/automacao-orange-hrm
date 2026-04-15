@@ -13,7 +13,10 @@
     "test:smoke": "cucumber-js --config cucumber.cjs --profile smoke",
     "test:smoke:retry": "cucumber-js --config cucumber.cjs --profile smoke_retry",
     "test:bdd": "cucumber-js --config cucumber.cjs --profile default",
-    "report": "playwright show-report"
+    "test:sanity": "cucumber-js --config cucumber.cjs --profile sanity",
+    "test:regression": "cucumber-js --config cucumber.cjs --profile regression",
+    "report": "playwright show-report",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
@@ -27,8 +30,13 @@
     "dotenv": "^16.6.1",
     "eslint": "^10.2.0",
     "globals": "^17.5.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.58.2"
+  },
+  "lint-staged": {
+    "*.ts": ["eslint --fix"]
   }
 }

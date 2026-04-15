@@ -15,6 +15,7 @@ Funcionalidade: Gestao de funcionarios no PIM
     Quando informa os dados obrigatorios
     E conclui o cadastro
     Entao o sistema deve registrar o funcionario
+    E o acesso associado deve ser concedido
 
   @P1 @campo_obrigatorio
   Cenario: Cadastro sem nome completo deve ser impedido

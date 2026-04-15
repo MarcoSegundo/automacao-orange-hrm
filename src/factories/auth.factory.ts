@@ -17,4 +17,12 @@ export class AuthFactory {
       pass: "senha_errada"
     };
   }
+
+  static employeeLogin(firstName: string, lastName: string): AuthDraft {
+    const token = `${Date.now()}`.slice(-6);
+    return {
+      user: `${firstName.toLowerCase().slice(0, 6)}.${lastName.toLowerCase().slice(0, 6)}.${token}`,
+      pass: `HrM!${token}Aa`
+    };
+  }
 }

@@ -9,12 +9,31 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      BASE_URL: ${{ vars['ORANGEHRM_BASE_URL'] || 'https://opensource-demo.orangehrmlive.com' }}
+      ADMIN_USER: ${{ secrets['ORANGEHRM_ADMIN_USER'] }}
+      ADMIN_PASS: ${{ secrets['ORANGEHRM_ADMIN_PASS'] }}
+      HEADLESS: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
+
+      - name: Validate required CI environment
+        run: |
+          if [ -z "$ADMIN_USER" ] || [ -z "$ADMIN_PASS" ]; then
+            echo "Missing ORANGEHRM_ADMIN_USER/ORANGEHRM_ADMIN_PASS secrets."
+            exit 1
+          fi
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
 
       - run: npm ci
       - run: npx playwright install --with-deps chromium

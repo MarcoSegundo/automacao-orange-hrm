@@ -6,6 +6,7 @@ export const SystemMessages = {
   invalidCredentials: "Invalid credentials",
   noRecordsFound: "No Records Found",
   addButton: "Add",
+  searchButton: "Search",
   confirmDelete: "Yes, Delete",
   logoutMenuItem: "Logout",
   employeeSearchPlaceholder: "Type for hints...",
@@ -18,7 +19,10 @@ export const SystemMessages = {
  */
 export const TestMessages = {
   pageNotInitialized: "Página não inicializada",
+  browserSessionNotInitialized: "Sessão de browser não inicializada",
   credentialsNotInitialized: "Credenciais não inicializadas",
+  envVarNotInitialized: (name: string) => `Variável de ambiente obrigatória não inicializada: ${name}`,
+  employeeLoginCredentialsNotInitialized: "Credenciais de login do funcionário não inicializadas",
   employeeNotInitialized: "Funcionário não inicializado",
   seededEmployeeNotInitialized: "Massa de apoio não inicializada",
   apiDeleteUnexpectedBody: (payload: unknown) =>
