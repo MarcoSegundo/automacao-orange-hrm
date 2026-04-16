@@ -1,6 +1,6 @@
 import { IWorldOptions, World, setWorldConstructor } from "@cucumber/cucumber";
 import { Browser, BrowserContext, Page } from "@playwright/test";
-import type { HybridSeed } from "../../../src/services/hybrid-pim.service";
+import type { HybridSeed } from "../../../src/modules/pim/services/hybrid-pim.service";
 
 export type AuthCredentials = {
   user: string;

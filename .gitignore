@@ -34,3 +34,17 @@ Thumbs.db
 # IDE/editor
 .vscode/
 .idea/
+
+# Caches, temporary files and CI artifacts
+.cache/
+.nyc_output/
+reports/
+playwright-traces/
+*.trace
+*.zip
+.vs/
+.history/
+# local environment overrides
+.env.local
+local.env
+*.local

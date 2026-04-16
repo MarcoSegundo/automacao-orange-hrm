@@ -1,5 +1,5 @@
 import { DashboardPage, EmployeeListPage, AddEmployeePage, EditEmployeePage } from "../../../src/pages";
-import { LoginPage } from "../../../src/auth/pages";
+import { LoginPage } from "../../../src/modules/auth/pages";
 import { getPage, getSeededEmployee } from "../context/scenario-context";
 import { ScenarioWorld } from "../context/world";
 

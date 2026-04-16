@@ -1,14 +1,14 @@
 import { Given, Then, When } from "@cucumber/cucumber";
-import { AuthFactory } from "../../src/factories/auth.factory";
-import { EmployeeFactory } from "../../src/factories/employee.factory";
+import { AuthFactory } from "../../src/modules/auth";
+import { EmployeeFactory } from "../../src/modules/pim";
 import {
   getEmployee,
   getEmployeeLoginCredentials,
   getSeededEmployee,
-  getPage,
   setEmployee,
   setEmployeeLoginCredentials,
-  setUpdatedEmployeeLastName
+  setUpdatedEmployeeLastName,
+  getPage
 } from "../support/context/scenario-context";
 import {
   dashboardPage,
@@ -17,6 +17,7 @@ import {
   editEmployeePage,
   loginPage
 } from "../support/factories/page-objects";
+import { AuthService } from "../../src/modules/auth/services/auth.service";
 import { ScenarioWorld } from "../support/context/world";
 
 Given("acessa o modulo PIM", async function (this: ScenarioWorld) {
@@ -62,28 +63,8 @@ Then("o sistema deve registrar o funcionario", async function (this: ScenarioWor
 });
 
 Then("o acesso associado deve ser concedido", async function (this: ScenarioWorld) {
-  const login = loginPage(this);
-  const dashboard = dashboardPage(this);
   const credentials = getEmployeeLoginCredentials(this);
-
-  let lastError: unknown;
-
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    try {
-      await getPage(this).context().clearCookies();
-      await login.open();
-      await login.login(credentials.user, credentials.pass);
-      await login.expectLoginSuccess();
-      await dashboard.expectLoaded();
-      return;
-    } catch (error) {
-      lastError = error;
-      // O ambiente demo pode levar alguns segundos para liberar o acesso recém-criado.
-      await getPage(this).waitForTimeout(1500 * attempt);
-    }
-  }
-
-  throw lastError;
+  await new AuthService(getPage(this)).signIn(credentials.user, credentials.pass);
 });
 
 Given("que existe um funcionario cadastrado", async function (this: ScenarioWorld) {
@@ -99,7 +80,7 @@ When("o usuario atualiza os dados cadastrais do funcionario", async function (th
   const employeeList = employeeListPage(this);
   const updatedLastName = `UPDATED_${Date.now()}`;
   setUpdatedEmployeeLastName(this, updatedLastName);
-  await employeeList.openFirstEmployeeForEdit();
+  await employeeList.openEmployeeForEditFromFirstRow();
   const editEmployee = editEmployeePage(this);
   await editEmployee.updateLastName(updatedLastName);
 });
@@ -114,7 +95,7 @@ When("o usuario solicita a exclusao do funcionario", async function (this: Scena
   const employeeList = employeeListPage(this);
   const employee = getEmployee(this);
   await employeeList.openAndSearchByName(employee.firstName);
-  await employeeList.deleteFirstEmployee();
+  await employeeList.deleteEmployeeFromFirstRow();
 });
 
 When("confirma a exclusao do funcionario", async function (this: ScenarioWorld) {
@@ -130,12 +111,14 @@ Then("o funcionario deve ser removido do sistema", async function (this: Scenari
 });
 
 Then("o acesso associado ao funcionario deve ser revogado", async function (this: ScenarioWorld) {
-  // No demo público, a criação/validação de credencial vinculada é instável.
-  // Neste desafio, a revogação é representada pela remoção efetiva do cadastro no PIM.
-  const employeeList = employeeListPage(this);
-  const employee = getEmployee(this);
-  await employeeList.openAndSearchByName(employee.firstName);
-  await employeeList.expectNoResult();
+  const dashboard = dashboardPage(this);
+  const login = loginPage(this);
+  const credentials = getEmployeeLoginCredentials(this);
+  // Garante que o admin está deslogado antes de tentar login do funcionário deletado
+  await dashboard.logoutNow();
+  await login.open();
+  await login.login(credentials.user, credentials.pass);
+  await login.expectLoginError();
 });
 
 Then("o sistema deve exibir a lista de funcionarios", async function (this: ScenarioWorld) {

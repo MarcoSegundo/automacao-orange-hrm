@@ -35,5 +35,15 @@ export const TestMessages = {
   hybridApiSeedUnavailable: (reason: string) =>
     `API de seed indisponível, alternando para fallback via UI (${reason})`,
   hybridApiCleanupUnavailable: (reason: string) =>
-    `API de limpeza indisponível, alternando para fallback via UI (${reason})`
+    `API de limpeza indisponível, alternando para fallback via UI (${reason})`,
+  employeeListReadyTimeout: (timeout: number) =>
+    `Tempo esgotado aguardando lista de funcionários: ${timeout}ms`,
+  employeeNotFoundForDelete: (name: string) =>
+    `Nenhum funcionário encontrado para exclusão com o nome: "${name}"`,
+  loginRetryAttempt: (attempt: number, user: string) =>
+    `loginWithRetry: tentativa ${attempt} para '${user}'`,
+  loginRetrySuccess: (attempt: number, user: string) =>
+    `loginWithRetry: sucesso na tentativa ${attempt} para '${user}'`,
+  loginRetryFailure: (attempt: number, err: unknown) =>
+    `loginWithRetry: falha tentativa ${attempt} -> ${String(err)}`
 } as const;

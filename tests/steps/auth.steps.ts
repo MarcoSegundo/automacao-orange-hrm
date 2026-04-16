@@ -1,5 +1,6 @@
 import { Given, Then, When } from "@cucumber/cucumber";
-import { AuthFactory } from "../../src/factories/auth.factory";
+import { AuthFactory } from "../../src/modules/auth";
+import { AuthService } from "../../src/modules/auth/services/auth.service";
 import { ROUTES, ROUTE_PATTERNS } from "../../src/support/routes";
 import { getCredentials, getPage, setCredentials } from "../support/context/scenario-context";
 import { dashboardPage, loginPage } from "../support/factories/page-objects";
@@ -27,10 +28,8 @@ When("solicita autenticacao", async function (this: ScenarioWorld) {
 });
 
 Then("o sistema deve conceder acesso ao painel principal", async function (this: ScenarioWorld) {
-  const login = loginPage(this);
-  const dashboard = dashboardPage(this);
-  await login.expectLoginSuccess();
-  await dashboard.expectLoaded();
+  const credentials = getCredentials(this);
+  await new AuthService(getPage(this)).signIn(credentials.user, credentials.pass);
 });
 
 Then("o sistema deve permanecer na tela de login", async function (this: ScenarioWorld) {

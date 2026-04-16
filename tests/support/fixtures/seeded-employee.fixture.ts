@@ -1,5 +1,5 @@
-import { EmployeeFactory } from "../../../src/factories/employee.factory";
-import { HybridPimService } from "../../../src/services/hybrid-pim.service";
+import { EmployeeFactory } from "../../../src/modules/pim";
+import { HybridPimService } from "../../../src/modules/pim/services/hybrid-pim.service";
 import { TestMessages } from "../../../src/support/messages";
 import { ScenarioWorld } from "../context/world";
 
@@ -21,7 +21,7 @@ export function shouldSkipSeededEmployeeCleanup(tagNames: string[]): boolean {
  * Prepara massa de apoio para cenários de busca/edição/exclusão.
  * A autenticação UI antecede a criação para compartilhar sessão com o client API.
  */
-export async function setupSeededEmployeeFixture(world: ScenarioWorld): Promise<void> {
+export async function setupSeededEmployeeFixture(world: ScenarioWorld, tagNames: string[] = []): Promise<void> {
   if (!world.page || !world.browserContext) {
     throw new Error(TestMessages.browserSessionNotInitialized);
   }
@@ -30,7 +30,14 @@ export async function setupSeededEmployeeFixture(world: ScenarioWorld): Promise<
   await hybridService.authenticateUi();
 
   const seeded = EmployeeFactory.unique("SEED");
-  world.seededEmployee = await hybridService.createSeedEmployee(seeded.firstName, seeded.lastName);
+
+  const { seed, credentials } = await hybridService.createSeedEmployeeWithUser(seeded.firstName, seeded.lastName);
+  // Salva o seed para todos os cenários que usam massa de apoio
+  world.seededEmployee = seed;
+  // Se for cenário de exclusão salva também as credenciais para validar revogação
+  if (tagNames.includes(DELETE_EMPLOYEE_TAG)) {
+    world.employeeLoginCredentials = credentials;
+  }
 
   await hybridService.dispose();
 }

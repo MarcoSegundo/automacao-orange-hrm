@@ -1,7 +1,7 @@
 import { expect, Page } from "@playwright/test";
-import { BasePage } from "../../pages/base.page";
-import { ROUTES, ROUTE_PATTERNS } from "../../support/routes";
-import { SystemMessages } from "../../support/messages";
+import { BasePage } from "../../../pages/base.page";
+import { ROUTES, ROUTE_PATTERNS } from "../../../support/routes";
+import { SystemMessages } from "../../../support/messages";
 
 /**
  * Page Object de autenticação.
@@ -31,11 +31,8 @@ export class LoginPage extends BasePage {
     await this.submit.click();
   }
 
-  async expectLoginSuccess(): Promise<void> {
-    await expect(this.page).toHaveURL(/dashboard/);
-  }
-
   async expectLoginError(): Promise<void> {
     await expect(this.alert).toContainText(SystemMessages.invalidCredentials, { timeout: 10000 });
   }
+
 }
