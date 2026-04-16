@@ -1,6 +1,6 @@
 import { expect, Page } from "@playwright/test";
-import { BasePage } from "./base.page";
-import { EMPLOYEE_FORM_REDIRECT_PATTERN, EMPLOYEE_FORM_REDIRECT_TIMEOUT } from "./page-constants";
+import { BasePage } from "../../../pages/base.page";
+import { EMPLOYEE_FORM_REDIRECT_PATTERN, EMPLOYEE_FORM_REDIRECT_TIMEOUT } from "../config/constants";
 
 export class AddEmployeePage extends BasePage {
   private readonly firstNameInput = this.page.locator('input[name="firstName"]');
@@ -67,6 +67,12 @@ export class AddEmployeePage extends BasePage {
     };
   }
 
+  /** Retorna o id do employee presente na URL atual (usado após submit) */
+  getCreatedEmployeeId(): string {
+    return this.extractEmployeeIdFromCurrentUrl();
+  }
+
+  // Tenta extrair o id do funcionário da URL; usa timestamp como fallback.
   private extractEmployeeIdFromCurrentUrl(): string {
     const pathname = new URL(this.page.url()).pathname;
     const match = pathname.match(/(?:empNumber|id|employeeId)\/([^/?#]+)/i);

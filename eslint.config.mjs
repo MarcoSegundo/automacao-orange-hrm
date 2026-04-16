@@ -24,7 +24,15 @@ export default [
     },
     rules: {
       "no-undef": "off",
-      "no-console": "off"
+      "no-console": "off",
+      "no-restricted-imports": [
+        "error",
+        {
+          "patterns": [
+            "src/modules/*/infra/*"
+          ]
+        }
+      ]
     }
   }
 ];

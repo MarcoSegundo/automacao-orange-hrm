@@ -21,6 +21,14 @@ jobs:
           node-version: 20
           cache: npm
 
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-
+
       - name: Validate required CI environment
         run: |
           if [ -z "$ADMIN_USER" ] || [ -z "$ADMIN_PASS" ]; then
@@ -49,4 +57,11 @@ jobs:
         with:
           name: test-results
           path: test-results
+          if-no-files-found: ignore
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
           if-no-files-found: ignore

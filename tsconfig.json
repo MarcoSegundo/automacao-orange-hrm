@@ -1,5 +1,11 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@modules/*": ["src/modules/*"],
+      "@support/*": ["src/support/*"]
+    },
+    "ignoreDeprecations": "6.0",
     "target": "ES2020",
     "lib": ["ES2022", "DOM"],
     "module": "NodeNext",

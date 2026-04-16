@@ -1,13 +1,14 @@
 import { Given, Then, When } from "@cucumber/cucumber";
-import { AuthFactory } from "../../src/factories/auth.factory";
-import { EmployeeFactory } from "../../src/factories/employee.factory";
+import { AuthFactory } from "../../src/modules/auth";
+import { EmployeeFactory } from "../../src/modules/pim";
 import {
   getEmployee,
   getEmployeeLoginCredentials,
   getSeededEmployee,
   setEmployee,
   setEmployeeLoginCredentials,
-  setUpdatedEmployeeLastName
+  setUpdatedEmployeeLastName,
+  getPage
 } from "../support/context/scenario-context";
 import {
   dashboardPage,
@@ -16,6 +17,7 @@ import {
   editEmployeePage,
   loginPage
 } from "../support/factories/page-objects";
+import { AuthService } from "../../src/modules/auth/services/auth.service";
 import { ScenarioWorld } from "../support/context/world";
 
 Given("acessa o modulo PIM", async function (this: ScenarioWorld) {
@@ -61,11 +63,8 @@ Then("o sistema deve registrar o funcionario", async function (this: ScenarioWor
 });
 
 Then("o acesso associado deve ser concedido", async function (this: ScenarioWorld) {
-  const login = loginPage(this);
-  const dashboard = dashboardPage(this);
   const credentials = getEmployeeLoginCredentials(this);
-  await login.loginWithRetry(credentials.user, credentials.pass);
-  await dashboard.expectLoaded();
+  await new AuthService(getPage(this)).signIn(credentials.user, credentials.pass);
 });
 
 Given("que existe um funcionario cadastrado", async function (this: ScenarioWorld) {

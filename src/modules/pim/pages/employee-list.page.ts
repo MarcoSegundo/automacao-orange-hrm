@@ -1,9 +1,9 @@
 import { expect, Page } from "@playwright/test";
-import { BasePage } from "./base.page";
-import { ROUTES } from "../support/routes";
-import { SystemMessages, TestMessages } from "../support/messages";
-import { EMPLOYEE_LIST_READY_TIMEOUT } from "./page-constants";
-import { logError } from "../support/logger";
+import { BasePage } from "../../../pages/base.page";
+import { ROUTES } from "../../../support/routes";
+import { SystemMessages, TestMessages } from "../../../support/messages";
+import { EMPLOYEE_LIST_READY_TIMEOUT } from "../config/constants";
+import { logError } from "../../../support/logger";
 
 export class EmployeeListPage extends BasePage {
   private readonly employeeNameInput = this.page

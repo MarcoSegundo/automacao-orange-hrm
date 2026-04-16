@@ -40,7 +40,6 @@ export const TestMessages = {
     `Tempo esgotado aguardando lista de funcionários: ${timeout}ms`,
   employeeNotFoundForDelete: (name: string) =>
     `Nenhum funcionário encontrado para exclusão com o nome: "${name}"`,
-
   loginRetryAttempt: (attempt: number, user: string) =>
     `loginWithRetry: tentativa ${attempt} para '${user}'`,
   loginRetrySuccess: (attempt: number, user: string) =>

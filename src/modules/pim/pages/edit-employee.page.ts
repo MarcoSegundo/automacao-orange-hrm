@@ -1,6 +1,6 @@
 import { expect, Page } from "@playwright/test";
-import { BasePage } from "./base.page";
-import { EMPLOYEE_FORM_REDIRECT_PATTERN, EMPLOYEE_FORM_REDIRECT_TIMEOUT } from "./page-constants";
+import { BasePage } from "../../../pages/base.page";
+import { EMPLOYEE_FORM_REDIRECT_PATTERN, EMPLOYEE_FORM_REDIRECT_TIMEOUT } from "../config/constants";
 
 export class EditEmployeePage extends BasePage {
   private readonly lastNameInput = this.page.locator('input[name="lastName"]');

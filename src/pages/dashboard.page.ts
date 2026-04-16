@@ -1,4 +1,4 @@
-import { expect, Page } from "@playwright/test";
+import { expect, Page, Locator } from "@playwright/test";
 import { BasePage } from "./base.page";
 import { SystemMessages } from "../support/messages";
 
@@ -29,8 +29,26 @@ export class DashboardPage extends BasePage {
   }
 
   async logoutNow(): Promise<void> {
+    // Abre o menu do usuário e clica em "Sair", com tentativas.
     await this.userDropdown.click();
-    await this.logout.click();
+    await this.clickWithRetries(this.logout, { attempts: 3, visibleTimeout: 5000 });
+  }
+
+  private async clickWithRetries(locator: Locator, opts?: { attempts?: number; visibleTimeout?: number }): Promise<void> {
+    // Tenta clicar no elemento algumas vezes, aguardando visibilidade.
+    const attempts = opts?.attempts ?? 3;
+    const visibleTimeout = opts?.visibleTimeout ?? 5000;
+
+    for (let i = 0; i < attempts; i++) {
+      try {
+        await locator.waitFor({ state: "visible", timeout: visibleTimeout });
+        await locator.click();
+        return;
+      } catch (err) {
+        if (i === attempts - 1) throw err;
+        await this.page.waitForTimeout(150 * (i + 1));
+      }
+    }
   }
 
   async searchMenu(term: string): Promise<void> {

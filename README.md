@@ -69,13 +69,7 @@ npm ci
 npm run lint
 npm run lint:types
 ```
-
-### 3. Rodar os testes
-```bash
-npm run test:smoke
-```
-
-### 4. Configurar variáveis (obrigatório)
+### 3. Configurar variáveis (obrigatório)
 ```powershell
 Copy-Item .env.example .env
 ```
@@ -108,17 +102,53 @@ Para debug com navegador aberto: `HEADLESS=false`
 
 ## Estrutura do Projeto
 
-**Testes e cenários:**
-- `tests/features/` → cenários em Gherkin
-- `tests/steps/` → steps implementados em TypeScript
-- `tests/support/` → contexto, fixtures e lifecycle dos testes
+**Visão geral:**
+O projeto separa claramente o código da automação (`src/`) da camada de testes e orquestração BDD (`tests/`). A seguir há uma descrição mais detalhada da arquitetura dos testes para facilitar manutenção e contribuição.
 
-**Código da automação:**
-- `src/auth/pages/` → pages de autenticação
-- `src/pages/` → pages de domínio (dashboard, funcionários etc)
-- `src/services/` → orquestração UI/API
-- `src/factories/` → geração de dados para testes
-- `src/support/` → utilitários (mensagens, env, logger)
+Arquitetura dos Testes (detalhada):
+
+- `tests/features/` — arquivos Gherkin (`.feature`) em pt-BR. Cada feature representa um comportamento de negócio; usamos tags para controlar execução (ex.: `@smoke`, `@search`, `@seeded-employee`, `@delete-employee`).
+- `tests/steps/` — definições de passos (Cucumber). Os steps devem ser finos e delegar ações a `Page Objects` ou `Services` (evitar lógica de negócio nos steps).
+- `tests/support/context/` — `world.ts` define `ScenarioWorld` (estado por cenário) e helpers de contexto (`scenario-context.ts`) para leitura/gravação de dados entre passos.
+- `tests/support/fixtures/` — fixtures reutilizáveis que preparam o ambiente por cenário. Ex.: `browser-session.fixture.ts` cria `browser/context/page`; `seeded-employee.fixture.ts` prepara massa via `HybridPimService` quando o cenário contém tags específicas.
+- `tests/support/lifecycle/` — hooks (`hooks.ts`) que orquestram `Before`/`After`: inicializam browser, disparam fixtures com base em tags, coletam evidências (screenshots, trace, vídeo) em caso de falha e garantem limpeza/idempotência.
+- `tests/support/factories/` — fábricas e construtores de `Page Objects` (`page-objects.ts`) para manter os steps enxutos e garantir construção consistente das páginas a partir do `ScenarioWorld`.
+- `tests/support/fixtures/index.ts` — ponto único para exportar fixtures usados pelos hooks.
+
+Padrões e responsabilidades:
+
+- Page Objects (`src/pages/`, `src/modules/*/pages`) encapsulam seletores, esperas e ações; são a API consumida pelos steps e services.
+- Services (`src/modules/*/services`) implementam orquestrações de alto nível (ex.: `AuthService`, `HybridPimService`) — útil para flows reutilizáveis e para separar política de retries/backoff.
+- Factories (`src/modules/*/factories`) criam massa de dados única e previsível para evitar colisões em ambientes compartilhados.
+- Infra/clients (`src/modules/*/infra`) abstraem integrações com APIs; `HybridPimService` tenta criar massa via API (rápido) e recorre à UI em caso de fallback (mais robusto).
+- Mensagens centralizadas em `src/support/messages.ts` para evitar strings hardcoded espalhadas por pages, services e steps.
+- `src/support/env.ts` centraliza variáveis de ambiente obrigatórias (`ADMIN_USER`, `ADMIN_PASS`) — veja `.env.example` no repositório.
+
+Configuração e Runner:
+
+- `playwright.config.ts` — configuração do Playwright Test (reporter, traces, video, screenshot, baseURL). O `testDir` aponta para `tests` para unificar execução de suites.
+- `cucumber.cjs` — configurador do Cucumber com perfis (`smoke`, `regression`, `sanity`, etc.). Os scripts em `package.json` usam esses perfis.
+
+Fluxo de criação e limpeza de massa:
+
+- A fixture `seeded-employee.fixture.ts` usa `HybridPimService` (`src/modules/pim/services/hybrid-pim.service.ts`) que, por sua vez, usa `PimApiClient` (`src/modules/pim/infra/clients/pim-api.client.ts`) para criar/excluir dados via API quando possível — e recorre a páginas UI (`AddEmployeePage`) quando a API não está disponível.
+- Os hooks verificam tags do cenário e aplicam a preparação/limpeza automaticamente para manter idempotência entre execuções.
+
+Comandos de execução consolidados na seção **Executar** abaixo.
+
+Artefatos e evidências:
+
+- `playwright-report/` — relatório HTML do Playwright
+- `test-results/` — screenshots, traces e JSONs gerados pelos hooks em caso de falha
+
+Boas práticas ao adicionar cenários:
+
+1. Criar o `.feature` em `tests/features/` com tag apropriada.
+2. Preferir reutilizar steps existentes; se necessário, criar steps finos e delegar para `Page Objects` ou `Services`.
+3. Se precisar de nova massa, adicionar fábrica em `src/modules/<dominio>/factories` e atualizar fixtures quando apropriado.
+4. Garantir que seletores fiquem consolidados em Page Objects e mensagens visíveis sigam `src/support/messages.ts`.
+
+Essa organização facilita manutenção, reduz duplicação e torna os testes compreensíveis para novos membros do time.
 
 ---
 
@@ -134,8 +164,8 @@ npm run lint && npm run lint:types  # Validação
 
 **Docker**
 ```bash
-docker build -t orangehrm-qa .
-docker run --rm --env-file .env orangehrm-qa
+docker build -t automacao-orange-hrm:local .
+docker run --rm -e ADMIN_USER=Admin -e ADMIN_PASS=admin123 -e HEADLESS=true automacao-orange-hrm:local
 ```
 
 ---
@@ -165,6 +195,10 @@ O pipeline em [.github/workflows/ci.yml](.github/workflows/ci.yml) executa:
 3. Retry automático se falhar
 4. Publica artefatos de teste
 
+Adicionalmente o workflow foi atualizado para:
+- cache do `~/.npm` para acelerar builds
+- publicar `playwright-report` como artefato
+
 **Gates:**
 - ✅ Se passar na primeira tentativa
 - ❌ Se falhar na primeira tentativa (o retry é diagnóstico adicional)
@@ -176,6 +210,8 @@ O pipeline em [.github/workflows/ci.yml](.github/workflows/ci.yml) executa:
 - `ORANGEHRM_ADMIN_USER` (Repository Secret)
 - `ORANGEHRM_ADMIN_PASS` (Repository Secret)
 - `ORANGEHRM_BASE_URL` (opcional, Repository Variable)
+
+OBS: atualizar secrets para `ORANGEHRM_ADMIN_USER`/`ORANGEHRM_ADMIN_PASS` ou ajustar variáveis de ambiente do workflow conforme necessário.
 
 ---
 
@@ -203,3 +239,11 @@ O pipeline em [.github/workflows/ci.yml](.github/workflows/ci.yml) executa:
 - [ ] Gate por tipo de mudança (reduz tempo de CI)
 - [ ] Histórico de flaky por suíte
 - [ ] Expandir para P1/P2 conforme demanda
+
+---
+
+## Troubleshooting rápido
+
+Para passos rápidos de resolução de problemas, veja [docs/troubleshooting.md](docs/troubleshooting.md).
+
+---
