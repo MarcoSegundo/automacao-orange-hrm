@@ -4,6 +4,11 @@ Base de validacao:
 - Revisada apos observacao real da aplicacao via MCP.
 - Alinhada com a estrategia: 15 cenarios mapeados + 7 para execucao imediata.
 
+Nota sobre Gherkins:
+- Os arquivos Gherkin usados como documentação e mapeamento estão em `docs/requirements/gherkin/` (ex.: `autenticacao.feature`, `busca_filtros.feature`, `gestao_funcionarios.feature`).
+- A implementação executável dos mesmos cenários está em `tests/features/` (usado pelo Cucumber durante execucao).
+
+
 ## Algoritmo rapido (5 minutos)
 
 Escala por eixo (0 a 3):
