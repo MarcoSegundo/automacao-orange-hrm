@@ -22,15 +22,15 @@ Neste projeto, foram mapeados 15 cenários e automatizados os 7 de maior impacto
 
 **Cenários automatizados:**
 
-| ID  | Cenário                       | Por que é crítico                |
-|-----|-------------------------------|----------------------------------|
-| A01 | Login válido                  | Acesso ao sistema                |
-| A02 | Login inválido                | Segurança de acesso              |
-| A03 | Rota protegida sem sessão     | Controle de acesso               |
-| G01 | Cadastro de funcionário       | Fluxo CRUD principal             |
-| G04 | Edição de funcionário         | Atualização de dados             |
-| G05 | Exclusão de funcionário       | Limpeza de dados e acesso        |
-| B01 | Busca por nome                | Busca funcional                  |
+| ID | Cenário | Por quê é crítico |
+|---|---|---|
+| A01 | Login válido | Acesso ao sistema |
+| A02 | Login inválido | Segurança de acesso |
+| A03 | Rota protegida sem sessão | Controle de acesso |
+| G01 | Cadastro de funcionário | Fluxo CRUD principal |
+| G04 | Edição de funcionário | Atualização de dados |
+| G05 | Exclusão de funcionário | Limpeza de dados e acesso |
+| B01 | Busca por nome | Busca funcional |
 
 Veja mais detalhes na [matriz de risco](docs/requirements/matriz_risco.md).
 

@@ -1,4 +1,5 @@
 import { EmployeeFactory } from "../../../src/factories/employee.factory";
+import { AuthFactory } from "../../../src/factories/auth.factory";
 import { HybridPimService } from "../../../src/services/hybrid-pim.service";
 import { TestMessages } from "../../../src/support/messages";
 import { ScenarioWorld } from "../context/world";
@@ -33,10 +34,7 @@ export async function setupSeededEmployeeFixture(world: ScenarioWorld, tagNames:
 
   // Se for cenário de exclusão, cria via UI e salva credenciais
   if (tagNames.includes(DELETE_EMPLOYEE_TAG)) {
-    const loginCredentials = {
-      user: `${seeded.firstName.toLowerCase().slice(0, 6)}.${seeded.lastName.toLowerCase().slice(0, 6)}.${Date.now().toString().slice(-6)}`,
-      pass: `HrM!${Date.now().toString().slice(-6)}Aa`
-    };
+    const loginCredentials = AuthFactory.employeeLogin(seeded.firstName, seeded.lastName);
     // Cria via UI
     world.seededEmployee = await hybridService.createSeedEmployeeViaUi(seeded.firstName, seeded.lastName, loginCredentials);
     // Salva credenciais para step de revogação
