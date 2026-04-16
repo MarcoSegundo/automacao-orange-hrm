@@ -1,8 +1,9 @@
 import { expect, Page } from "@playwright/test";
 import { BasePage } from "./base.page";
 import { ROUTES } from "../support/routes";
-import { SystemMessages } from "../support/messages";
+import { SystemMessages, TestMessages } from "../support/messages";
 import { EMPLOYEE_LIST_READY_TIMEOUT } from "./page-constants";
+import { logError } from "../support/logger";
 
 export class EmployeeListPage extends BasePage {
   private readonly employeeNameInput = this.page
@@ -21,14 +22,14 @@ export class EmployeeListPage extends BasePage {
   }
 
   async expectListVisible(): Promise<void> {
-    await this.waitForListReady();
+    await this.waitForTableOrEmptyState();
   }
 
   async searchByName(name: string): Promise<void> {
     await this.employeeNameInput.fill(name);
     await this.searchButton.click();
     // Após buscar, espera a listagem estabilizar para evitar leitura parcial da tabela.
-    await this.waitForSearchToSettle();
+    await this.waitForTableOrEmptyState();
   }
 
   async expectAnyResult(): Promise<void> {
@@ -54,7 +55,7 @@ export class EmployeeListPage extends BasePage {
     await this.goto(ROUTES.pimEmployeeList);
     // Garante que a listagem e o estado de "sem registros" estejam prontos
     // antes de prosseguir com ações que dependem da tabela.
-    await this.waitForListReady();
+    await this.waitForTableOrEmptyState();
   }
 
   async openAndSearchByName(name: string): Promise<void> {
@@ -67,7 +68,7 @@ export class EmployeeListPage extends BasePage {
     await this.expectAnyResult();
   }
 
-  async deleteFirstEmployee(): Promise<void> {
+  async deleteEmployeeFromFirstRow(): Promise<void> {
     const deleteButton = this.getDeleteButtonFromFirstRow();
     await expect(deleteButton).toBeVisible();
     await deleteButton.click();
@@ -78,22 +79,22 @@ export class EmployeeListPage extends BasePage {
     await this.addButton.click();
   }
 
-  async openFirstEmployeeForEdit(): Promise<void> {
+  async openEmployeeForEditFromFirstRow(): Promise<void> {
     const editButton = this.getEditButtonFromFirstRow();
     await expect(editButton).toBeVisible();
     await editButton.click();
   }
 
-  async deleteEmployeeByName(firstName: string): Promise<void> {
+  async deleteEmployeeFromFirstRowByName(firstName: string): Promise<void> {
     await this.goToEmployeeList();
     await this.searchByName(firstName);
 
     const rowCount = await this.getRowCount();
     if (rowCount === 0) {
-      return;
+      throw new Error(TestMessages.employeeNotFoundForDelete(firstName));
     }
 
-    await this.deleteFirstEmployee();
+    await this.deleteEmployeeFromFirstRow();
     await this.confirmDeleteEmployee();
     await this.searchByName(firstName);
     await this.expectNoResult();
@@ -101,31 +102,21 @@ export class EmployeeListPage extends BasePage {
 
   async confirmDeleteEmployee(): Promise<void> {
     await this.confirmDeleteButton.click();
-    await this.waitForSearchToSettle();
-  }
-
-  private async waitForListReady(): Promise<void> {
-    await this.waitForTableOrEmptyState();
-  }
-
-  private async waitForSearchToSettle(): Promise<void> {
     await this.waitForTableOrEmptyState();
   }
 
   private async waitForTableOrEmptyState(): Promise<void> {
-    await this.page
-      .waitForFunction(
-        () => {
-          const rows = document.querySelectorAll(".oxd-table-body .oxd-table-row");
-          const emptyState = Array.from(document.querySelectorAll(".oxd-text--span")).some((element) =>
-            element.textContent?.includes(SystemMessages.noRecordsFound)
-          );
-
-          return rows.length > 0 || emptyState;
-        },
-        { timeout: EMPLOYEE_LIST_READY_TIMEOUT }
-      )
-      .catch(() => undefined);
+    // Aguarda tabela com dados OU mensagem "sem registros"
+    try {
+      await Promise.any([
+        this.tableRows.first().waitFor({ state: "visible", timeout: EMPLOYEE_LIST_READY_TIMEOUT }),
+        this.noRecords.waitFor({ state: "visible", timeout: EMPLOYEE_LIST_READY_TIMEOUT })
+      ]);
+    } catch (err) {
+      // Se ambas falharam, log de erro com mensagem padrão e relança para falhar o teste
+      logError(TestMessages.employeeListReadyTimeout(EMPLOYEE_LIST_READY_TIMEOUT));
+      throw err;
+    }
   }
 
   private getFirstResultRow() {

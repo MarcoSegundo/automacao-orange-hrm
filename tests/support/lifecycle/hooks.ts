@@ -28,7 +28,7 @@ Before(async function (this: ScenarioWorld, hook: ITestCaseHookParameter) {
     return;
   }
 
-  await setupSeededEmployeeFixture(this);
+  await setupSeededEmployeeFixture(this, tagNames);
 });
 
 // Finaliza cenário com evidências e limpeza para manter independência entre execuções.

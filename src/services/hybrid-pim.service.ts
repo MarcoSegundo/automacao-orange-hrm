@@ -61,20 +61,31 @@ export class HybridPimService {
     await this.apiClient.dispose();
   }
 
-  private async createSeedEmployeeViaUi(firstName: string, lastName: string): Promise<HybridSeed> {
+  async createSeedEmployeeViaUi(firstName: string, lastName: string, loginCredentials?: { user: string; pass: string }): Promise<HybridSeed> {
     const employeeList = new EmployeeListPage(this.page);
     const addEmployee = new AddEmployeePage(this.page);
 
     await employeeList.goToEmployeeList();
     await employeeList.clickAddButton();
 
-    return await addEmployee.createEmployee(firstName, lastName);
+    if (loginCredentials) {
+      await addEmployee.fillMandatoryData(firstName, lastName);
+      await addEmployee.fillLoginDetails(loginCredentials.user, loginCredentials.pass);
+      await addEmployee.submit();
+      return {
+        id: addEmployee["extractEmployeeIdFromCurrentUrl"](),
+        firstName,
+        lastName
+      };
+    } else {
+      return await addEmployee.createEmployee(firstName, lastName);
+    }
   }
 
   private async deleteSeedEmployeeViaUi(firstName: string): Promise<void> {
     const employeeList = new EmployeeListPage(this.page);
 
-    await employeeList.deleteEmployeeByName(firstName);
+    await employeeList.deleteEmployeeFromFirstRowByName(firstName);
   }
 
 }

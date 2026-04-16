@@ -21,7 +21,7 @@ export function shouldSkipSeededEmployeeCleanup(tagNames: string[]): boolean {
  * Prepara massa de apoio para cenários de busca/edição/exclusão.
  * A autenticação UI antecede a criação para compartilhar sessão com o client API.
  */
-export async function setupSeededEmployeeFixture(world: ScenarioWorld): Promise<void> {
+export async function setupSeededEmployeeFixture(world: ScenarioWorld, tagNames: string[] = []): Promise<void> {
   if (!world.page || !world.browserContext) {
     throw new Error(TestMessages.browserSessionNotInitialized);
   }
@@ -30,7 +30,20 @@ export async function setupSeededEmployeeFixture(world: ScenarioWorld): Promise<
   await hybridService.authenticateUi();
 
   const seeded = EmployeeFactory.unique("SEED");
-  world.seededEmployee = await hybridService.createSeedEmployee(seeded.firstName, seeded.lastName);
+
+  // Se for cenário de exclusão, cria via UI e salva credenciais
+  if (tagNames.includes(DELETE_EMPLOYEE_TAG)) {
+    const loginCredentials = {
+      user: `${seeded.firstName.toLowerCase().slice(0, 6)}.${seeded.lastName.toLowerCase().slice(0, 6)}.${Date.now().toString().slice(-6)}`,
+      pass: `HrM!${Date.now().toString().slice(-6)}Aa`
+    };
+    // Cria via UI
+    world.seededEmployee = await hybridService.createSeedEmployeeViaUi(seeded.firstName, seeded.lastName, loginCredentials);
+    // Salva credenciais para step de revogação
+    world.employeeLoginCredentials = loginCredentials;
+  } else {
+    world.seededEmployee = await hybridService.createSeedEmployee(seeded.firstName, seeded.lastName);
+  }
 
   await hybridService.dispose();
 }

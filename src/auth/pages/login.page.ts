@@ -1,7 +1,8 @@
 import { expect, Page } from "@playwright/test";
 import { BasePage } from "../../pages/base.page";
 import { ROUTES, ROUTE_PATTERNS } from "../../support/routes";
-import { SystemMessages } from "../../support/messages";
+import { SystemMessages, TestMessages } from "../../support/messages";
+import { logInfo, logError } from "../../support/logger";
 
 /**
  * Page Object de autenticação.
@@ -37,5 +38,31 @@ export class LoginPage extends BasePage {
 
   async expectLoginError(): Promise<void> {
     await expect(this.alert).toContainText(SystemMessages.invalidCredentials, { timeout: 10000 });
+  }
+
+  /**
+   * Tenta efetuar login com retries para contornar latência do ambiente demo.
+   * Não faz validação do dashboard (deixa isso para quem chama).
+   */
+  async loginWithRetry(user: string, pass: string, attempts = 3, backoffMs = 1500): Promise<void> {
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      try {
+        logInfo(TestMessages.loginRetryAttempt(attempt, user));
+        await this.page.context().clearCookies();
+        await this.open();
+        await this.login(user, pass);
+        await this.expectLoginSuccess();
+        logInfo(TestMessages.loginRetrySuccess(attempt, user));
+        return;
+      } catch (err) {
+        lastError = err;
+        logError(TestMessages.loginRetryFailure(attempt, err));
+        await this.page.waitForTimeout(backoffMs * attempt);
+      }
+    }
+
+    throw lastError;
   }
 }

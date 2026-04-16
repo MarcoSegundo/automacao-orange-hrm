@@ -17,8 +17,3 @@ Then("o sistema deve retornar um resultado correspondente", async function (this
   const employeeList = employeeListPage(this);
   await employeeList.expectAnyResult();
 });
-
-Then("o sistema deve informar que nao ha registros correspondentes", async function (this: ScenarioWorld) {
-  const employeeList = employeeListPage(this);
-  await employeeList.expectNoResult();
-});
