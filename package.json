@@ -8,14 +8,17 @@
     "lint:types": "tsc --noEmit",
     "build": "tsc -p tsconfig.json",
     "test": "playwright test",
-    "test:headed": "playwright test --headed",
-    "test:ui": "playwright test --ui",
+    "test:playwright": "playwright test",
+    "test:playwright:headed": "playwright test --headed",
+    "test:playwright:ui": "playwright test --ui",
+    "test:cucumber": "cucumber-js --config cucumber.cjs --profile default",
     "test:smoke": "cucumber-js --config cucumber.cjs --profile smoke",
     "test:smoke:retry": "cucumber-js --config cucumber.cjs --profile smoke_retry",
-    "test:bdd": "cucumber-js --config cucumber.cjs --profile default",
     "test:sanity": "cucumber-js --config cucumber.cjs --profile sanity",
     "test:regression": "cucumber-js --config cucumber.cjs --profile regression",
     "report": "playwright show-report",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "prepare": "husky"
   },
   "keywords": [],
@@ -32,11 +35,18 @@
     "globals": "^17.5.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
+    "prettier": "^2.8.8",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.0",
     "typescript-eslint": "^8.58.2"
   },
   "lint-staged": {
-    "*.ts": ["eslint --fix"]
+    "*.ts": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.md": [
+      "prettier --write"
+    ]
   }
 }

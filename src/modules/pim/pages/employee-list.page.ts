@@ -1,21 +1,29 @@
-import { expect, Page } from "@playwright/test";
-import { BasePage } from "../../../pages/base.page";
-import { ROUTES } from "../../../support/routes";
-import { SystemMessages, TestMessages } from "../../../support/messages";
-import { EMPLOYEE_LIST_READY_TIMEOUT } from "../config/constants";
-import { logError } from "../../../support/logger";
+import { expect, Page, Locator } from '@playwright/test';
+import { BasePage } from '../../../pages/base.page';
+import { ROUTES } from '../../../support/routes';
+import { SystemMessages, TestMessages } from '../../../support/messages';
+import { Selectors } from '../../../support/selectors';
+import { UiText } from '../../../support/ui-text';
+import { EMPLOYEE_LIST_READY_TIMEOUT } from '../config/constants';
+import { logError } from '../../../support/logger';
 
+/**
+ * Page Object para listagem de funcionários no módulo PIM.
+ *
+ * Encapsula ações de pesquisa, navegação e exclusão na listagem.
+ */
 export class EmployeeListPage extends BasePage {
-  private readonly employeeNameInput = this.page
-    .locator(`input[placeholder="${SystemMessages.employeeSearchPlaceholder}"]`)
-    .first();
-  private readonly tableRows = this.page.locator(".oxd-table-body .oxd-table-row");
+  private readonly tableRows = this.page.locator('.oxd-table-body .oxd-table-row');
   private readonly noRecords = this.page
-    .locator(".oxd-text--span")
+    .locator('.oxd-text--span')
     .filter({ hasText: SystemMessages.noRecordsFound });
-  private readonly addButton = this.page.getByRole("button", { name: SystemMessages.addButton });
-  private readonly confirmDeleteButton = this.page.getByRole("button", { name: SystemMessages.confirmDelete });
-  private readonly searchButton = this.page.getByRole("button", { name: SystemMessages.searchButton });
+  private readonly addButton = this.page.getByRole('button', { name: UiText.labels.addButton });
+  private readonly confirmDeleteButton = this.page.getByRole('button', {
+    name: UiText.labels.confirmDelete,
+  });
+  private readonly searchButton = this.page.getByRole('button', {
+    name: UiText.labels.searchButton,
+  });
 
   constructor(page: Page) {
     super(page);
@@ -26,9 +34,10 @@ export class EmployeeListPage extends BasePage {
   }
 
   async searchByName(name: string): Promise<void> {
-    await this.employeeNameInput.fill(name);
+    const input = await this.getEmployeeNameInput();
+    await input.fill(name);
     await this.searchButton.click();
-    // Após buscar, espera a listagem estabilizar para evitar leitura parcial da tabela.
+    // Nota: espera a listagem estabilizar para evitar leitura parcial da tabela.
     await this.waitForTableOrEmptyState();
   }
 
@@ -42,8 +51,7 @@ export class EmployeeListPage extends BasePage {
 
   async expectNoResult(): Promise<void> {
     const rowCount = await this.tableRows.count();
-    // O OrangeHRM pode mostrar "sem resultado" de dois jeitos: tabela vazia ou
-    // texto "No Records Found"; validar ambos evita falsos negativos.
+    // Nota: o OrangeHRM pode mostrar "sem resultado" como tabela vazia ou texto "No Records Found"; validar ambos evita falsos negativos.
     if (rowCount === 0) {
       return;
     }
@@ -53,8 +61,7 @@ export class EmployeeListPage extends BasePage {
 
   async goToEmployeeList(): Promise<void> {
     await this.goto(ROUTES.pimEmployeeList);
-    // Garante que a listagem e o estado de "sem registros" estejam prontos
-    // antes de prosseguir com ações que dependem da tabela.
+    // Nota: garante que a listagem e o estado de "sem registros" estejam prontos antes de prosseguir com ações que dependem da tabela.
     await this.waitForTableOrEmptyState();
   }
 
@@ -69,7 +76,7 @@ export class EmployeeListPage extends BasePage {
   }
 
   async deleteEmployeeFromFirstRow(): Promise<void> {
-    const deleteButton = this.getDeleteButtonFromFirstRow();
+    const deleteButton = await this.getDeleteButtonFromFirstRow();
     await expect(deleteButton).toBeVisible();
     await deleteButton.click();
     await expect(this.confirmDeleteButton).toBeVisible();
@@ -80,7 +87,7 @@ export class EmployeeListPage extends BasePage {
   }
 
   async openEmployeeForEditFromFirstRow(): Promise<void> {
-    const editButton = this.getEditButtonFromFirstRow();
+    const editButton = await this.getEditButtonFromFirstRow();
     await expect(editButton).toBeVisible();
     await editButton.click();
   }
@@ -106,14 +113,14 @@ export class EmployeeListPage extends BasePage {
   }
 
   private async waitForTableOrEmptyState(): Promise<void> {
-    // Aguarda tabela com dados OU mensagem "sem registros"
+    // Nota: aguarda tabela com dados OU mensagem "sem registros"
     try {
       await Promise.any([
-        this.tableRows.first().waitFor({ state: "visible", timeout: EMPLOYEE_LIST_READY_TIMEOUT }),
-        this.noRecords.waitFor({ state: "visible", timeout: EMPLOYEE_LIST_READY_TIMEOUT })
+        this.tableRows.first().waitFor({ state: 'visible', timeout: EMPLOYEE_LIST_READY_TIMEOUT }),
+        this.noRecords.waitFor({ state: 'visible', timeout: EMPLOYEE_LIST_READY_TIMEOUT }),
       ]);
     } catch (err) {
-      // Se ambas falharam, log de erro com mensagem padrão e relança para falhar o teste
+      // Nota: se ambas falharam, registra erro e relança para falhar o teste
       logError(TestMessages.employeeListReadyTimeout(EMPLOYEE_LIST_READY_TIMEOUT));
       throw err;
     }
@@ -123,11 +130,46 @@ export class EmployeeListPage extends BasePage {
     return this.tableRows.first();
   }
 
+  private getActionButtonFromFirstRow(roleNames: string[], fallbackIndex: number) {
+    const row = this.getFirstResultRow();
+    const locators: Locator[] = roleNames.map((roleName) =>
+      row.getByRole('button', { name: roleName }),
+    );
+    locators.push(row.locator('button').nth(fallbackIndex));
+    return this.getBestInput(locators);
+  }
+
   private getEditButtonFromFirstRow() {
-    return this.getFirstResultRow().locator("button").nth(0);
+    return this.getActionButtonFromFirstRow([UiText.labels.editButton, 'Edit'], 0);
   }
 
   private getDeleteButtonFromFirstRow() {
-    return this.getFirstResultRow().locator("button").nth(1);
+    return this.getActionButtonFromFirstRow([UiText.labels.deleteButton, 'Delete'], 1);
+  }
+
+  /**
+   * Retorna o `Locator` mais apropriado para o campo de busca 'Employee Name'.
+   *
+   * Prioriza seletores de acessibilidade (role/label), depois placeholder
+   * e, como último recurso, o input localizado pelo grupo DOM cujo rótulo
+   * contém `Employee Name`.
+   *
+   * @returns Locator do campo de busca por nome do funcionário.
+   */
+  private async getEmployeeNameInput(): Promise<Locator> {
+    const locators: Locator[] = [
+      // Nota: role com nome igual ao rótulo (mais resiliente/semântico)
+      this.page.getByRole('textbox', { name: UiText.labels.employeeNameLabel }),
+      // Nota: placeholder específico 'Type for hints...'
+      this.page.getByPlaceholder(UiText.placeholders.employeeSearch),
+      // Nota: input dentro do grupo cujo rótulo contém 'Employee Name' (DOM fallback para desambiguação)
+      this.page
+        .locator(Selectors.oxdInputGroup, { hasText: UiText.labels.employeeNameLabel })
+        .locator(Selectors.inputByPlaceholder(UiText.placeholders.employeeSearch)),
+      // Nota: fallback genérico para qualquer textbox
+      this.page.getByRole('textbox'),
+    ];
+
+    return this.getBestInput(locators);
   }
 }

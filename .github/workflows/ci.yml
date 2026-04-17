@@ -44,6 +44,8 @@ jobs:
             playwright-${{ runner.os }}-
 
       - run: npm ci
+      - name: Check formatting (Prettier)
+        run: npx prettier --check .
       - run: npx playwright install --with-deps chromium
       - run: npm run lint
       - run: npm run lint:types
@@ -51,6 +53,11 @@ jobs:
 
       - if: failure()
         run: npm run test:smoke:retry
+
+      - name: Generate flaky summary
+        if: always()
+        run: |
+          node -e "const fs=require('fs');const p='test-results/smoke-report.json'; if(!fs.existsSync(p)){console.log('no smoke report'); process.exit(0);} const data=JSON.parse(fs.readFileSync(p)); const summary={total:0,failed:[],passed:[]}; for(const f of data){ for(const el of f.elements||[]){ summary.total++; const hasFailed = (el.steps||[]).some(s=>s.result&&s.result.status==='failed'); const rec={id:el.id||el.name, name:el.name, tags: (el.tags||[]).map(t=>t.name)}; if(hasFailed) summary.failed.push(rec); else summary.passed.push(rec); }} fs.mkdirSync('test-results',{recursive:true}); fs.writeFileSync('test-results/flaky-summary.json',JSON.stringify(summary,null,2)); console.log('flaky summary written to test-results/flaky-summary.json');"
 
       - if: always()
         uses: actions/upload-artifact@v4

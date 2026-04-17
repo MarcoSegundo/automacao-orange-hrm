@@ -1,11 +1,19 @@
-import { DashboardPage, EmployeeListPage, AddEmployeePage, EditEmployeePage } from "../../../src/pages";
-import { LoginPage } from "../../../src/modules/auth/pages";
-import { getPage, getSeededEmployee } from "../context/scenario-context";
-import { ScenarioWorld } from "../context/world";
+import {
+  DashboardPage,
+  EmployeeListPage,
+  AddEmployeePage,
+  EditEmployeePage,
+} from '../../../src/pages';
+import { LoginPage } from '../../../src/modules/auth/pages';
+import { getPage, getSeededEmployee } from '../context/scenario-context';
+import { ScenarioWorld } from '../context/world';
 
-// Ponto único de construção de Page Objects para manter os steps enxutos e consistentes.
-// Referência técnica: Dependency Injection (injeção de dependência) via ScenarioWorld.
-// Em vez de criar `new Page()` em cada step, usamos a dependência já preparada no contexto.
+/**
+ * Fábricas de Page Objects.
+ *
+ * Fornece um ponto único para construir Page Objects usando o `ScenarioWorld`.
+ * Mantém os steps enxutos e aplica injeção de dependência em vez de instanciar `new Page()` nos steps.
+ */
 export function loginPage(world: ScenarioWorld): LoginPage {
   return new LoginPage(getPage(world));
 }
