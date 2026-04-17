@@ -6,15 +6,15 @@ export type AuthDraft = {
 export class AuthFactory {
   static validAdmin(): AuthDraft {
     return {
-      user: process.env.ADMIN_USER || "Admin",
-      pass: process.env.ADMIN_PASS || "admin123"
+      user: process.env.ADMIN_USER || 'Admin',
+      pass: process.env.ADMIN_PASS || 'admin123',
     };
   }
 
   static invalidCredentials(): AuthDraft {
     return {
-      user: process.env.ADMIN_USER || "Admin",
-      pass: "senha_errada"
+      user: process.env.ADMIN_USER || 'Admin',
+      pass: 'senha_errada',
     };
   }
 
@@ -22,7 +22,7 @@ export class AuthFactory {
     const token = `${Date.now()}`.slice(-6);
     return {
       user: `${firstName.toLowerCase().slice(0, 6)}.${lastName.toLowerCase().slice(0, 6)}.${token}`,
-      pass: `HrM!${token}Aa`
+      pass: `HrM!${token}Aa`,
     };
   }
 }

@@ -1,42 +1,42 @@
 module.exports = {
   default: {
-    require: ["tests/support/**/*.ts", "tests/steps/**/*.ts"],
-    requireModule: ["ts-node/register"],
-    paths: ["tests/features/**/*.feature"],
-    format: ["progress-bar", "json:test-results/cucumber-report.json"],
-    parallel: 3
+    require: ['tests/support/**/*.ts', 'tests/steps/**/*.ts'],
+    requireModule: ['ts-node/register'],
+    paths: ['tests/features/**/*.feature'],
+    format: ['progress-bar', 'json:test-results/cucumber-report.json'],
+    parallel: 3,
   },
   smoke: {
-    require: ["tests/support/**/*.ts", "tests/steps/**/*.ts"],
-    requireModule: ["ts-node/register"],
-    paths: ["tests/features/**/*.feature"],
-    tags: "@smoke",
-    format: ["progress-bar", "json:test-results/smoke-report.json"],
-    parallel: 3
+    require: ['tests/support/**/*.ts', 'tests/steps/**/*.ts'],
+    requireModule: ['ts-node/register'],
+    paths: ['tests/features/**/*.feature'],
+    tags: '@smoke',
+    format: ['progress-bar', 'json:test-results/smoke-report.json'],
+    parallel: 3,
   },
   smoke_retry: {
-    require: ["tests/support/**/*.ts", "tests/steps/**/*.ts"],
-    requireModule: ["ts-node/register"],
-    paths: ["tests/features/**/*.feature"],
-    tags: "@smoke",
-    format: ["progress-bar", "json:test-results/smoke-retry-report.json"],
+    require: ['tests/support/**/*.ts', 'tests/steps/**/*.ts'],
+    requireModule: ['ts-node/register'],
+    paths: ['tests/features/**/*.feature'],
+    tags: '@smoke',
+    format: ['progress-bar', 'json:test-results/smoke-retry-report.json'],
     parallel: 3,
-    retry: 1
+    retry: 1,
   },
   sanity: {
-    require: ["tests/support/**/*.ts", "tests/steps/**/*.ts"],
-    requireModule: ["ts-node/register"],
-    paths: ["tests/features/**/*.feature"],
-    tags: "@sanity",
-    format: ["progress-bar", "json:test-results/sanity-report.json"],
-    parallel: 3
+    require: ['tests/support/**/*.ts', 'tests/steps/**/*.ts'],
+    requireModule: ['ts-node/register'],
+    paths: ['tests/features/**/*.feature'],
+    tags: '@sanity',
+    format: ['progress-bar', 'json:test-results/sanity-report.json'],
+    parallel: 3,
   },
   regression: {
-    require: ["tests/support/**/*.ts", "tests/steps/**/*.ts"],
-    requireModule: ["ts-node/register"],
-    paths: ["tests/features/**/*.feature"],
-    tags: "@regression",
-    format: ["progress-bar", "json:test-results/regression-report.json"],
-    parallel: 3
-  }
+    require: ['tests/support/**/*.ts', 'tests/steps/**/*.ts'],
+    requireModule: ['ts-node/register'],
+    paths: ['tests/features/**/*.feature'],
+    tags: '@regression',
+    format: ['progress-bar', 'json:test-results/regression-report.json'],
+    parallel: 3,
+  },
 };

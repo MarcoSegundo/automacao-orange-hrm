@@ -1,4 +1,3 @@
-
 # automacao-orange-hrm
 
 Automação de testes QA para OrangeHRM utilizando Playwright, TypeScript e BDD.
@@ -10,27 +9,29 @@ O projeto cobre os 7 fluxos críticos de autenticação, gestão de funcionário
 ## Por que 7 cenários?
 
 **Escopo definido:**
+
 - Mínimo de 5 cenários BDD para as 3 funcionalidades principais
 - Automatizar ao menos 3 deles
 
 Neste projeto, foram mapeados 15 cenários e automatizados os 7 de maior impacto e risco.
 
 **Por que esses 7?**
+
 - São os casos que realmente bloqueiam o sistema em caso de falha
 - Cada um valida uma funcionalidade essencial e independente
 - Rodam rápido (~2 minutos) e cobrem 90% dos caminhos críticos
 
 **Cenários automatizados:**
 
-| ID | Cenário | Por quê é crítico |
-|---|---|---|
-| A01 | Login válido | Acesso ao sistema |
-| A02 | Login inválido | Segurança de acesso |
-| A03 | Rota protegida sem sessão | Controle de acesso |
-| G01 | Cadastro de funcionário | Fluxo CRUD principal |
-| G04 | Edição de funcionário | Atualização de dados |
-| G05 | Exclusão de funcionário | Limpeza de dados e acesso |
-| B01 | Busca por nome | Busca funcional |
+| ID  | Cenário                   | Por quê é crítico         |
+| --- | ------------------------- | ------------------------- |
+| A01 | Login válido              | Acesso ao sistema         |
+| A02 | Login inválido            | Segurança de acesso       |
+| A03 | Rota protegida sem sessão | Controle de acesso        |
+| G01 | Cadastro de funcionário   | Fluxo CRUD principal      |
+| G04 | Edição de funcionário     | Atualização de dados      |
+| G05 | Exclusão de funcionário   | Limpeza de dados e acesso |
+| B01 | Busca por nome            | Busca funcional           |
 
 Veja mais detalhes na [matriz de risco](docs/requirements/matriz_risco.md).
 
@@ -41,10 +42,12 @@ Veja mais detalhes na [matriz de risco](docs/requirements/matriz_risco.md).
 Falhas intermitentes podem ser observadas devido a instabilidades do ambiente demo do OrangeHRM, principalmente nos fluxos de cadastro, exclusão e busca de funcionários. O cenário **G01 Cadastro de funcionário** é utilizado intensivamente para criação de massa de dados e validação dos fluxos principais do sistema. Por depender fortemente do backend, pode apresentar falhas ocasionais por lentidão ou instabilidade do ambiente, resultando em timeout no passo de submissão (aguardando redirecionamento após salvar).
 
 **O que foi feito:**
-- Timeout desse passo ajustado para 60 segundos, limite recomendado pelo mercado para operações críticas de UI.
+
+- Timeout desse passo está configurado atualmente para 30 segundos (`EMPLOYEE_FORM_REDIRECT_TIMEOUT` em `src/modules/pim/config/constants.ts`). Ajuste esse valor na constante se for necessário aumentar para ambientes mais lentos.
 - Toda falha é registrada nos logs centralizados, facilitando análise posterior.
 
 **Recomendação:**
+
 - Se a falha se tornar frequente, acione o time de backend/infraestrutura para investigação. O framework de testes está estável e segue boas práticas de isolamento e geração de dados.
 
 **Por que não usamos mock nesse cenário?**
@@ -60,32 +63,60 @@ Ainda assim, seguimos monitorando e aprimorando continuamente a automação. Cas
 ## Como começar?
 
 ### 1. Instalar
+
 ```bash
 npm ci
 ```
 
 ### 2. Validar código
+
 ```bash
 npm run lint
 npm run lint:types
 ```
+
 ### 3. Configurar variáveis (obrigatório)
+
+Copie o `.env` de exemplo e preencha as credenciais locais:
+
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Ou:
+Ou em sistemas Unix:
 
 ```bash
 cp .env.example .env
 ```
 
 Preencha no `.env`:
+
 - `ADMIN_USER`
 - `ADMIN_PASS`
 - `BASE_URL` (opcional; por padrão usa o demo público)
 
-Para debug com navegador aberto: `HEADLESS=false`
+Observação sobre CI: no GitHub Actions os secrets são nomeados `ORANGEHRM_ADMIN_USER` e `ORANGEHRM_ADMIN_PASS` e são exportados como `ADMIN_USER`/`ADMIN_PASS` no ambiente do job (veja `.github/workflows/ci.yml`). Ajuste os nomes dos secrets se necessário.
+
+Para debug com navegador visível em PowerShell:
+
+```powershell
+$env:HEADLESS = 'false'
+npm run test:smoke
+```
+
+Ou em Unix/macOS:
+
+```bash
+HEADLESS=false npm run test:smoke
+```
+
+### 4. Instalar navegadores do Playwright
+
+Após `npm ci`, instale os navegadores necessários (recomendado para execução local e em CI):
+
+```bash
+npx playwright install --with-deps chromium
+```
 
 ---
 
@@ -97,6 +128,13 @@ Para debug com navegador aberto: `HEADLESS=false`
 - ESLint + Type-check
 - Docker
 - GitHub Actions
+
+### Formatação e CI
+
+- O repositório inclui `prettier` e a CI verifica formatação via `npx prettier --check .` antes do lint. Use `npm run format` para aplicar formatação localmente.
+- Lint e checagem de tipos são obrigatórios no CI (`npm run lint`, `npm run lint:types`).
+
+Recomendação: prefira usar os scripts `npm run format` e `npm run format:check` para consistência com a configuração do projeto.
 
 ---
 
@@ -155,6 +193,7 @@ Essa organização facilita manutenção, reduz duplicação e torna os testes c
 ## Executar
 
 **Local**
+
 ```bash
 npm run test:smoke              # Smoke (7 cenários)
 npm run test:smoke:retry        # Retry se falhar
@@ -163,6 +202,7 @@ npm run lint && npm run lint:types  # Validação
 ```
 
 **Docker**
+
 ```bash
 docker build -t automacao-orange-hrm:local .
 docker run --rm -e ADMIN_USER=Admin -e ADMIN_PASS=admin123 -e HEADLESS=true automacao-orange-hrm:local
@@ -172,19 +212,19 @@ docker run --rm -e ADMIN_USER=Admin -e ADMIN_PASS=admin123 -e HEADLESS=true auto
 
 ## Scripts
 
-| Comando | O que faz |
-|---|---|
-| `npm run lint` | Analisa código TypeScript |
-| `npm run lint:fix` | Corrige problemas automaticamente |
-| `npm run lint:types` | Valida tipos em tempo de compilação |
-| `npm run build` | Compila TypeScript |
-| `npm run test:smoke` | Executa os 7 cenários P0 |
-| `npm run test:smoke:retry` | Retry para diagnóstico de flaky |
-| `npm run test:bdd` | Executa todos os cenários automatizados |
-| `npm run test` | Usa Playwright Test diretamente |
-| `npm run report` | Abre o relatório HTML |
+| Comando                    | O que faz                               |
+| -------------------------- | --------------------------------------- |
+| `npm run lint`             | Analisa código TypeScript               |
+| `npm run lint:fix`         | Corrige problemas automaticamente       |
+| `npm run lint:types`       | Valida tipos em tempo de compilação     |
+| `npm run build`            | Compila TypeScript                      |
+| `npm run test:smoke`       | Executa os 7 cenários P0                |
+| `npm run test:smoke:retry` | Retry para diagnóstico de flaky         |
+| `npm run test:bdd`         | Executa todos os cenários automatizados |
+| `npm run test`             | Usa Playwright Test diretamente         |
+| `npm run report`           | Abre o relatório HTML                   |
 
----
+## Nota: antes de executar em um host limpo, rode `npx playwright install --with-deps chromium`.
 
 ## CI/CD
 
@@ -196,10 +236,12 @@ O pipeline em [.github/workflows/ci.yml](.github/workflows/ci.yml) executa:
 4. Publica artefatos de teste
 
 Adicionalmente o workflow foi atualizado para:
+
 - cache do `~/.npm` para acelerar builds
 - publicar `playwright-report` como artefato
 
 **Gates:**
+
 - ✅ Se passar na primeira tentativa
 - ❌ Se falhar na primeira tentativa (o retry é diagnóstico adicional)
 
@@ -211,7 +253,7 @@ Adicionalmente o workflow foi atualizado para:
 - `ORANGEHRM_ADMIN_PASS` (Repository Secret)
 - `ORANGEHRM_BASE_URL` (opcional, Repository Variable)
 
-OBS: atualizar secrets para `ORANGEHRM_ADMIN_USER`/`ORANGEHRM_ADMIN_PASS` ou ajustar variáveis de ambiente do workflow conforme necessário.
+OBS: o workflow mapeia esses secrets para as variáveis `ADMIN_USER` e `ADMIN_PASS` usadas pela suíte local; mantenha o mapeamento caso altere nomes de secrets no repositório.
 
 ---
 

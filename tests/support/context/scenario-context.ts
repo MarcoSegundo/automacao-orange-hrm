@@ -1,19 +1,22 @@
-import { TestMessages } from "../../../src/support/messages";
-import { ScenarioWorld } from "./world";
+import { TestMessages } from '../../../src/support/messages';
+import { ScenarioWorld } from './world';
 
-export type AuthCredentials = ScenarioWorld["credentials"] extends infer T ? NonNullable<T> : never;
+export type AuthCredentials = ScenarioWorld['credentials'] extends infer T ? NonNullable<T> : never;
 
 /** Persiste credenciais no contexto do cenário para reutilização entre steps. */
 export function setCredentials(world: ScenarioWorld, credentials: AuthCredentials): void {
   world.credentials = credentials;
 }
 
-export function setEmployeeLoginCredentials(world: ScenarioWorld, credentials: AuthCredentials): void {
+export function setEmployeeLoginCredentials(
+  world: ScenarioWorld,
+  credentials: AuthCredentials,
+): void {
   world.employeeLoginCredentials = credentials;
 }
 
 /** Retorna a página ativa do cenário e falha cedo se o setup não foi executado. */
-export function getPage(world: ScenarioWorld): NonNullable<ScenarioWorld["page"]> {
+export function getPage(world: ScenarioWorld): NonNullable<ScenarioWorld['page']> {
   if (!world.page) throw new Error(TestMessages.pageNotInitialized);
   return world.page;
 }
@@ -53,7 +56,7 @@ export function setUpdatedEmployeeLastName(world: ScenarioWorld, lastName: strin
 }
 
 /** Lê o funcionário em contexto e evita steps dependentes de estado incompleto. */
-export function getEmployee(world: ScenarioWorld): NonNullable<ScenarioWorld["employee"]> {
+export function getEmployee(world: ScenarioWorld): NonNullable<ScenarioWorld['employee']> {
   if (!world.employee) {
     throw new Error(TestMessages.employeeNotInitialized);
   }
@@ -61,7 +64,9 @@ export function getEmployee(world: ScenarioWorld): NonNullable<ScenarioWorld["em
 }
 
 /** Lê a massa de apoio criada no hook para fluxos de busca/edição/exclusão. */
-export function getSeededEmployee(world: ScenarioWorld): NonNullable<ScenarioWorld["seededEmployee"]> {
+export function getSeededEmployee(
+  world: ScenarioWorld,
+): NonNullable<ScenarioWorld['seededEmployee']> {
   if (!world.seededEmployee) {
     throw new Error(TestMessages.seededEmployeeNotInitialized);
   }

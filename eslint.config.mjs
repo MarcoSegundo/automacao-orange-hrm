@@ -1,38 +1,36 @@
-import js from "@eslint/js";
-import globals from "globals";
-import tseslint from "typescript-eslint";
+import js from '@eslint/js';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
 export default [
   {
     ignores: [
-      "dist/**",
-      "node_modules/**",
-      "test-results/**",
-      "playwright-report/**",
-      "**/*.cjs",
-      "**/*.js"
-    ]
+      'dist/**',
+      'node_modules/**',
+      'test-results/**',
+      'playwright-report/**',
+      '**/*.cjs',
+      '**/*.js',
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ["**/*.ts"],
+    files: ['**/*.ts'],
     languageOptions: {
       globals: {
-        ...globals.node
-      }
+        ...globals.node,
+      },
     },
     rules: {
-      "no-undef": "off",
-      "no-console": "off",
-      "no-restricted-imports": [
-        "error",
+      'no-undef': 'off',
+      'no-console': 'off',
+      'no-restricted-imports': [
+        'error',
         {
-          "patterns": [
-            "src/modules/*/infra/*"
-          ]
-        }
-      ]
-    }
-  }
+          patterns: ['src/modules/*/infra/*'],
+        },
+      ],
+    },
+  },
 ];
